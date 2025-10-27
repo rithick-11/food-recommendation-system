@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../services/api";
 import MealCard from "../components/MealCard";
+import MultiDayMealPlan from "../components/MultiDayMealPlan";
 
 const MealPlan = () => {
   const { user } = useAuth();
@@ -10,6 +11,7 @@ const MealPlan = () => {
   const [error, setError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
+  const [dayCount, setDayCount] = useState(1);
 
   // Ref to prevent duplicate API calls
   const hasFetchedMealPlan = useRef(false);
@@ -55,17 +57,19 @@ const MealPlan = () => {
       setError("");
       setMessage("");
 
-      const response = await api.post("/api/mealplan/generate");
+      const response = await api.post("/api/mealplan/generate", {
+        dayCount: dayCount
+      });
 
       setMealPlan(response.data.data.mealPlan);
-      setMessage("New meal plan generated successfully!");
+      setMessage(`New ${dayCount}-day meal plan generated successfully!`);
     } catch (error) {
       console.error("Error generating meal plan:", error);
       setError(error.response?.data?.message || "Failed to generate meal plan");
     } finally {
       setGenerating(false);
     }
-  }, []);
+  }, [dayCount]);
 
   const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -89,20 +93,40 @@ const MealPlan = () => {
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">My Meal Plan</h1>
-        <button
-          onClick={generateMealPlan}
-          disabled={generating}
-          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {generating ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Generating...
-            </>
-          ) : (
-            "Generate New Meal Plan"
-          )}
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="dayCount" className="text-sm font-medium text-gray-700">
+              Days:
+            </label>
+            <select
+              id="dayCount"
+              value={dayCount}
+              onChange={(e) => setDayCount(parseInt(e.target.value))}
+              disabled={generating}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map(day => (
+                <option key={day} value={day}>
+                  {day} {day === 1 ? 'day' : 'days'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={generateMealPlan}
+            disabled={generating}
+            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {generating ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Generating...
+              </>
+            ) : (
+              "Generate New Meal Plan"
+            )}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -118,65 +142,69 @@ const MealPlan = () => {
       )}
 
       {mealPlan ? (
-        <div className="space-y-6">
-          {/* Meal Plan Header */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Daily Meal Plan
-              </h2>
-              <span className="text-sm text-gray-500">
-                Generated on {formatDate(mealPlan.generatedAt)}
-              </span>
-            </div>
+        mealPlan.dayCount > 1 ? (
+          <MultiDayMealPlan mealPlan={mealPlan} />
+        ) : (
+          <div className="space-y-6">
+            {/* Meal Plan Header */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Daily Meal Plan
+                </h2>
+                <span className="text-sm text-gray-500">
+                  Generated on {formatDate(mealPlan.generatedAt)}
+                </span>
+              </div>
 
-            {/* Daily Summary */}
-            {mealPlan.summary && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  Daily Nutritional Summary
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {mealPlan.summary.total_calories_kcal}
+              {/* Daily Summary */}
+              {mealPlan.summary && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">
+                    Daily Nutritional Summary
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {mealPlan.summary.total_calories_kcal}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Calories</div>
                     </div>
-                    <div className="text-sm text-gray-600">Total Calories</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {mealPlan.summary.total_protein_g}g
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {mealPlan.summary.total_protein_g}g
+                      </div>
+                      <div className="text-sm text-gray-600">Protein</div>
                     </div>
-                    <div className="text-sm text-gray-600">Protein</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {mealPlan.summary.total_carbs_g}g
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {mealPlan.summary.total_carbs_g}g
+                      </div>
+                      <div className="text-sm text-gray-600">Carbohydrates</div>
                     </div>
-                    <div className="text-sm text-gray-600">Carbohydrates</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">
-                      {mealPlan.summary.total_fat_g}g
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-600">
+                        {mealPlan.summary.total_fat_g}g
+                      </div>
+                      <div className="text-sm text-gray-600">Fat</div>
                     </div>
-                    <div className="text-sm text-gray-600">Fat</div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Individual Meals */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MealCard
-              mealType="breakfast"
-              mealData={mealPlan.meals?.breakfast}
-            />
-            <MealCard mealType="lunch" mealData={mealPlan.meals?.lunch} />
-            <MealCard mealType="snacks" mealData={mealPlan.meals?.snacks} />
-            <MealCard mealType="dinner" mealData={mealPlan.meals?.dinner} />
+            {/* Individual Meals */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <MealCard
+                mealType="breakfast"
+                mealData={mealPlan.meals?.breakfast}
+              />
+              <MealCard mealType="lunch" mealData={mealPlan.meals?.lunch} />
+              <MealCard mealType="snacks" mealData={mealPlan.meals?.snacks} />
+              <MealCard mealType="dinner" mealData={mealPlan.meals?.dinner} />
+            </div>
           </div>
-        </div>
+        )
       ) : (
         !error && (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -202,13 +230,33 @@ const MealPlan = () => {
               Generate your first personalized meal plan based on your health
               profile.
             </p>
-            <button
-              onClick={generateMealPlan}
-              disabled={generating}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {generating ? "Generating..." : "Generate Meal Plan"}
-            </button>
+            <div className="flex items-center gap-4 justify-center">
+              <div className="flex items-center gap-2">
+                <label htmlFor="dayCountEmpty" className="text-sm font-medium text-gray-700">
+                  Days:
+                </label>
+                <select
+                  id="dayCountEmpty"
+                  value={dayCount}
+                  onChange={(e) => setDayCount(parseInt(e.target.value))}
+                  disabled={generating}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7].map(day => (
+                    <option key={day} value={day}>
+                      {day} {day === 1 ? 'day' : 'days'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={generateMealPlan}
+                disabled={generating}
+                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {generating ? "Generating..." : "Generate Meal Plan"}
+              </button>
+            </div>
           </div>
         )
       )}

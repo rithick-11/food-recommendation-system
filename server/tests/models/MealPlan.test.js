@@ -37,6 +37,7 @@ describe('MealPlan Model', () => {
     test('should create a valid meal plan with all required fields', async () => {
       const mealPlanData = {
         patient: testPatientProfile._id,
+        dayCount: 1,
         meals: {
           breakfast: {
             items: 'Oatmeal with fruits',
@@ -95,6 +96,7 @@ describe('MealPlan Model', () => {
 
     test('should fail to create meal plan without patient reference', async () => {
       const mealPlanData = {
+        dayCount: 1,
         meals: {
           breakfast: {
             items: 'Oatmeal',
@@ -144,6 +146,7 @@ describe('MealPlan Model', () => {
     test('should validate negative nutritional values', async () => {
       const mealPlanData = {
         patient: testPatientProfile._id,
+        dayCount: 1,
         meals: {
           breakfast: {
             items: 'Oatmeal',
@@ -196,6 +199,7 @@ describe('MealPlan Model', () => {
       // Create multiple meal plans
       const mealPlanData = {
         patient: testPatientProfile._id,
+        dayCount: 1,
         meals: {
           breakfast: { items: 'Oatmeal', carbs_g: 45, protein_g: 8, fat_g: 3, fiber_g: 6, calories_kcal: 250 },
           lunch: { items: 'Salad', carbs_g: 20, protein_g: 35, fat_g: 12, fiber_g: 8, calories_kcal: 320 },
@@ -220,6 +224,7 @@ describe('MealPlan Model', () => {
     test('should validate summary totals correctly', async () => {
       const mealPlanData = {
         patient: testPatientProfile._id,
+        dayCount: 1,
         meals: {
           breakfast: { items: 'Oatmeal', carbs_g: 45, protein_g: 8, fat_g: 3, fiber_g: 6, calories_kcal: 250 },
           lunch: { items: 'Salad', carbs_g: 20, protein_g: 35, fat_g: 12, fiber_g: 8, calories_kcal: 320 },

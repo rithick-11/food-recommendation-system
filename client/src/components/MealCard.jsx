@@ -1,4 +1,4 @@
-const MealCard = ({ mealType, mealData }) => {
+const MealCard = ({ mealType, mealData, dayNumber = null }) => {
   const mealIcons = {
     breakfast: '🌅',
     lunch: '☀️',
@@ -11,9 +11,14 @@ const MealCard = ({ mealType, mealData }) => {
       <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6">
         <div className="flex items-center mb-4">
           <span className="text-2xl mr-3">{mealIcons[mealType] || '🍽️'}</span>
-          <h3 className="text-xl font-semibold text-gray-900 capitalize">
-            {mealType}
-          </h3>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 capitalize">
+              {mealType}
+            </h3>
+            {dayNumber && (
+              <span className="text-sm text-gray-500">Day {dayNumber}</span>
+            )}
+          </div>
         </div>
         <div className="text-center py-8">
           <div className="text-gray-400 text-4xl mb-2">📭</div>
@@ -36,9 +41,14 @@ const MealCard = ({ mealType, mealData }) => {
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6">
       <div className="flex items-center mb-4">
         <span className="text-2xl mr-3">{mealIcons[mealType] || '🍽️'}</span>
-        <h3 className="text-xl font-semibold text-gray-900 capitalize">
-          {mealType}
-        </h3>
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 capitalize">
+            {mealType}
+          </h3>
+          {dayNumber && (
+            <span className="text-sm text-gray-500">Day {dayNumber}</span>
+          )}
+        </div>
       </div>
       
       <div className="mb-6">

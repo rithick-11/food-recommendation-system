@@ -5,9 +5,10 @@ class MockMealPlanGenerator {
   /**
    * Generates a mock meal plan based on patient profile
    * @param {Object} patientProfile - Patient profile data
+   * @param {number} dayCount - Number of days for meal plan (1-7)
    * @returns {Object} - Mock meal plan object
    */
-  generateMealPlan(patientProfile) {
+  generateMealPlan(patientProfile, dayCount = 1) {
     const {
       age,
       weight_kg,
@@ -28,39 +29,104 @@ class MockMealPlanGenerator {
     // Adjust for health goals
     const targetCalories = this.adjustCaloriesForGoal(baseCalories, healthGoal);
 
-    // Generate meals based on preferences and location
-    const meals = this.generateMeals(
-      mealPreference,
-      diseaseCondition,
-      targetCalories,
-      location
-    );
+    if (dayCount === 1) {
+      // Single day meal plan (backward compatibility)
+      const meals = this.generateMeals(
+        mealPreference,
+        diseaseCondition,
+        targetCalories,
+        location
+      );
 
-    return {
-      meals,
-      summary: {
-        total_calories_kcal:
-          meals.breakfast.calories_kcal +
-          meals.lunch.calories_kcal +
-          meals.snacks.calories_kcal +
-          meals.dinner.calories_kcal,
-        total_protein_g:
-          meals.breakfast.protein_g +
-          meals.lunch.protein_g +
-          meals.snacks.protein_g +
-          meals.dinner.protein_g,
-        total_carbs_g:
-          meals.breakfast.carbs_g +
-          meals.lunch.carbs_g +
-          meals.snacks.carbs_g +
-          meals.dinner.carbs_g,
-        total_fat_g:
-          meals.breakfast.fat_g +
-          meals.lunch.fat_g +
-          meals.snacks.fat_g +
-          meals.dinner.fat_g,
-      },
-    };
+      return {
+        meals,
+        summary: {
+          total_calories_kcal:
+            meals.breakfast.calories_kcal +
+            meals.lunch.calories_kcal +
+            meals.snacks.calories_kcal +
+            meals.dinner.calories_kcal,
+          total_protein_g:
+            meals.breakfast.protein_g +
+            meals.lunch.protein_g +
+            meals.snacks.protein_g +
+            meals.dinner.protein_g,
+          total_carbs_g:
+            meals.breakfast.carbs_g +
+            meals.lunch.carbs_g +
+            meals.snacks.carbs_g +
+            meals.dinner.carbs_g,
+          total_fat_g:
+            meals.breakfast.fat_g +
+            meals.lunch.fat_g +
+            meals.snacks.fat_g +
+            meals.dinner.fat_g,
+        },
+      };
+    } else {
+      // Multi-day meal plan
+      const dailyMeals = {};
+      const dailySummaries = {};
+      let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+
+      for (let day = 1; day <= dayCount; day++) {
+        const dayKey = `day${day}`;
+        
+        // Generate meals for this day with slight variations
+        const dayMeals = this.generateMeals(
+          mealPreference,
+          diseaseCondition,
+          targetCalories,
+          location,
+          day // Pass day number for variation
+        );
+
+        dailyMeals[dayKey] = dayMeals;
+
+        // Calculate daily summary
+        const daySummary = {
+          total_calories_kcal:
+            dayMeals.breakfast.calories_kcal +
+            dayMeals.lunch.calories_kcal +
+            dayMeals.snacks.calories_kcal +
+            dayMeals.dinner.calories_kcal,
+          total_protein_g:
+            dayMeals.breakfast.protein_g +
+            dayMeals.lunch.protein_g +
+            dayMeals.snacks.protein_g +
+            dayMeals.dinner.protein_g,
+          total_carbs_g:
+            dayMeals.breakfast.carbs_g +
+            dayMeals.lunch.carbs_g +
+            dayMeals.snacks.carbs_g +
+            dayMeals.dinner.carbs_g,
+          total_fat_g:
+            dayMeals.breakfast.fat_g +
+            dayMeals.lunch.fat_g +
+            dayMeals.snacks.fat_g +
+            dayMeals.dinner.fat_g,
+        };
+
+        dailySummaries[dayKey] = daySummary;
+
+        // Add to overall totals
+        totalCalories += daySummary.total_calories_kcal;
+        totalProtein += daySummary.total_protein_g;
+        totalCarbs += daySummary.total_carbs_g;
+        totalFat += daySummary.total_fat_g;
+      }
+
+      return {
+        dailyMeals,
+        dailySummaries,
+        summary: {
+          total_calories_kcal: totalCalories,
+          total_protein_g: totalProtein,
+          total_carbs_g: totalCarbs,
+          total_fat_g: totalFat,
+        },
+      };
+    }
   }
 
   calculateBaseCalories(age, weight, activityLevel) {
@@ -88,7 +154,7 @@ class MockMealPlanGenerator {
     return baseCalories + (adjustments[healthGoal] || 0);
   }
 
-  generateMeals(mealPreference, diseaseCondition, targetCalories, location) {
+  generateMeals(mealPreference, diseaseCondition, targetCalories, location, dayNumber = 1) {
     const breakfastCalories = Math.round(targetCalories * 0.25);
     const lunchCalories = Math.round(targetCalories * 0.35);
     const snackCalories = Math.round(targetCalories * 0.15);
@@ -100,39 +166,47 @@ class MockMealPlanGenerator {
         mealPreference,
         diseaseCondition,
         breakfastCalories,
-        location
+        location,
+        dayNumber
       ),
       lunch: this.generateMeal(
         "lunch",
         mealPreference,
         diseaseCondition,
         lunchCalories,
-        location
+        location,
+        dayNumber
       ),
       snacks: this.generateMeal(
         "snacks",
         mealPreference,
         diseaseCondition,
         snackCalories,
-        location
+        location,
+        dayNumber
       ),
       dinner: this.generateMeal(
         "dinner",
         mealPreference,
         diseaseCondition,
         dinnerCalories,
-        location
+        location,
+        dayNumber
       ),
     };
 
     return meals;
   }
 
-  generateMeal(mealType, mealPreference, diseaseCondition, targetCalories, location = {}) {
+  generateMeal(mealType, mealPreference, diseaseCondition, targetCalories, location = {}, dayNumber = 1) {
     // Get location-specific meal templates
     const mealTemplates = this.getLocationBasedMealTemplates(location);
 
-    const baseMeal =
+    // Get variations for multi-day plans
+    const mealVariations = this.getMealVariations(mealType, mealPreference, location);
+    const variationIndex = (dayNumber - 1) % mealVariations.length;
+    
+    const baseMeal = mealVariations[variationIndex] ||
       mealTemplates[mealType][mealPreference] ||
       mealTemplates[mealType]["Mixed"];
 
@@ -164,6 +238,21 @@ class MockMealPlanGenerator {
       fiber_g: Math.round(adjustedMeal.fiber_g * scaleFactor),
       calories_kcal: targetCalories,
     };
+  }
+
+  getMealVariations(mealType, mealPreference, location) {
+    // Simple variations for multi-day plans
+    const baseTemplates = this.getLocationBasedMealTemplates(location);
+    const baseMeal = baseTemplates[mealType][mealPreference] || baseTemplates[mealType]["Mixed"];
+    
+    // Create 3 variations of each meal for variety
+    const variations = [
+      baseMeal, // Original
+      { ...baseMeal, items: baseMeal.items.replace(/1 cup/g, '1.5 cups').replace(/2 /g, '1 ') }, // Variation 1
+      { ...baseMeal, items: baseMeal.items + ' with herbs and spices' } // Variation 2
+    ];
+    
+    return variations;
   }
 
   getLocationBasedMealTemplates(location) {

@@ -27,6 +27,16 @@ try {
 const generateForPatient = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { dayCount = 1 } = req.body;
+
+    // Validate dayCount
+    if (!Number.isInteger(dayCount) || dayCount < 1 || dayCount > 7) {
+      return res.status(400).json({
+        success: false,
+        message: "Day count must be an integer between 1 and 7",
+        code: "INVALID_DAY_COUNT",
+      });
+    }
 
     // Find patient profile
     const patientProfile = await PatientProfile.findOne({ user: userId });
@@ -39,36 +49,56 @@ const generateForPatient = async (req, res) => {
     }
 
     // Generate meal plan using Gemini API (with fallback to mock)
-    const mealPlanData = await geminiClient.generateMealPlan(patientProfile);
+    const mealPlanData = await geminiClient.generateMealPlan(patientProfile, dayCount);
 
     // Create and save meal plan
-    const mealPlan = new MealPlan({
+    const mealPlanDocument = {
       patient: patientProfile._id,
-      meals: mealPlanData.meals,
+      dayCount: dayCount,
       summary: mealPlanData.summary,
-    });
+    };
+
+    if (dayCount === 1) {
+      // Single day meal plan (backward compatibility)
+      mealPlanDocument.meals = mealPlanData.meals;
+    } else {
+      // Multi-day meal plan
+      mealPlanDocument.dailyMeals = mealPlanData.dailyMeals;
+      mealPlanDocument.dailySummaries = mealPlanData.dailySummaries;
+    }
+
+    const mealPlan = new MealPlan(mealPlanDocument);
 
     await mealPlan.save();
 
     // Populate patient data for response
     await mealPlan.populate("patient");
 
+    const responseData = {
+      id: mealPlan._id,
+      generatedAt: mealPlan.generatedAt,
+      dayCount: mealPlan.dayCount,
+      summary: mealPlan.summary,
+      patient: {
+        id: mealPlan.patient._id,
+        name: mealPlan.patient.user ? "Patient" : "Unknown", // Avoid exposing user details
+        healthGoal: mealPlan.patient.healthGoal,
+        mealPreference: mealPlan.patient.mealPreference,
+      },
+    };
+
+    if (dayCount === 1) {
+      responseData.meals = mealPlan.meals;
+    } else {
+      responseData.dailyMeals = mealPlan.dailyMeals;
+      responseData.dailySummaries = mealPlan.dailySummaries;
+    }
+
     res.status(201).json({
       success: true,
-      message: "Meal plan generated successfully",
+      message: `${dayCount}-day meal plan generated successfully`,
       data: {
-        mealPlan: {
-          id: mealPlan._id,
-          generatedAt: mealPlan.generatedAt,
-          meals: mealPlan.meals,
-          summary: mealPlan.summary,
-          patient: {
-            id: mealPlan.patient._id,
-            name: mealPlan.patient.user ? "Patient" : "Unknown", // Avoid exposing user details
-            healthGoal: mealPlan.patient.healthGoal,
-            mealPreference: mealPlan.patient.mealPreference,
-          },
-        },
+        mealPlan: responseData,
       },
     });
   } catch (error) {
@@ -103,6 +133,16 @@ const generateForPatient = async (req, res) => {
 const generateForPatientByDoctor = async (req, res) => {
   try {
     const { patientId } = req.params;
+    const { dayCount = 1 } = req.body;
+
+    // Validate dayCount
+    if (!Number.isInteger(dayCount) || dayCount < 1 || dayCount > 7) {
+      return res.status(400).json({
+        success: false,
+        message: "Day count must be an integer between 1 and 7",
+        code: "INVALID_DAY_COUNT",
+      });
+    }
 
     // Verify doctor role (middleware should handle this, but double-check)
     if (req.user.role !== "doctor") {
@@ -136,38 +176,58 @@ const generateForPatientByDoctor = async (req, res) => {
     }
 
     // Generate meal plan using Gemini API
-    const mealPlanData = await geminiClient.generateMealPlan(patientProfile);
+    const mealPlanData = await geminiClient.generateMealPlan(patientProfile, dayCount);
 
     // Create and save meal plan
-    const mealPlan = new MealPlan({
+    const mealPlanDocument = {
       patient: patientProfile._id,
-      meals: mealPlanData.meals,
+      dayCount: dayCount,
       summary: mealPlanData.summary,
-    });
+    };
+
+    if (dayCount === 1) {
+      // Single day meal plan (backward compatibility)
+      mealPlanDocument.meals = mealPlanData.meals;
+    } else {
+      // Multi-day meal plan
+      mealPlanDocument.dailyMeals = mealPlanData.dailyMeals;
+      mealPlanDocument.dailySummaries = mealPlanData.dailySummaries;
+    }
+
+    const mealPlan = new MealPlan(mealPlanDocument);
 
     await mealPlan.save();
 
     // Populate patient data for response
     await mealPlan.populate("patient");
 
+    const responseData = {
+      id: mealPlan._id,
+      generatedAt: mealPlan.generatedAt,
+      dayCount: mealPlan.dayCount,
+      summary: mealPlan.summary,
+      patient: {
+        id: mealPlan.patient._id,
+        name: patientProfile.user.name,
+        email: patientProfile.user.email,
+        healthGoal: mealPlan.patient.healthGoal,
+        mealPreference: mealPlan.patient.mealPreference,
+        diseaseCondition: mealPlan.patient.diseaseCondition,
+      },
+    };
+
+    if (dayCount === 1) {
+      responseData.meals = mealPlan.meals;
+    } else {
+      responseData.dailyMeals = mealPlan.dailyMeals;
+      responseData.dailySummaries = mealPlan.dailySummaries;
+    }
+
     res.status(201).json({
       success: true,
-      message: `Meal plan generated successfully for patient ${patientProfile.user.name}`,
+      message: `${dayCount}-day meal plan generated successfully for patient ${patientProfile.user.name}`,
       data: {
-        mealPlan: {
-          id: mealPlan._id,
-          generatedAt: mealPlan.generatedAt,
-          meals: mealPlan.meals,
-          summary: mealPlan.summary,
-          patient: {
-            id: mealPlan.patient._id,
-            name: patientProfile.user.name,
-            email: patientProfile.user.email,
-            healthGoal: mealPlan.patient.healthGoal,
-            mealPreference: mealPlan.patient.mealPreference,
-            diseaseCondition: mealPlan.patient.diseaseCondition,
-          },
-        },
+        mealPlan: responseData,
       },
     });
   } catch (error) {
@@ -225,19 +285,30 @@ const getPatientMealPlan = async (req, res) => {
       });
     }
 
+    const responseData = {
+      id: mealPlan._id,
+      generatedAt: mealPlan.generatedAt,
+      dayCount: mealPlan.dayCount || 1,
+      summary: mealPlan.summary,
+      daysAgo: Math.floor(
+        (Date.now() - mealPlan.generatedAt) / (1000 * 60 * 60 * 24)
+      ),
+    };
+
+    if (mealPlan.dayCount === 1 || !mealPlan.dayCount) {
+      // Single day meal plan (backward compatibility)
+      responseData.meals = mealPlan.meals;
+    } else {
+      // Multi-day meal plan
+      responseData.dailyMeals = mealPlan.dailyMeals;
+      responseData.dailySummaries = mealPlan.dailySummaries;
+    }
+
     res.status(200).json({
       success: true,
       message: "Meal plan retrieved successfully",
       data: {
-        mealPlan: {
-          id: mealPlan._id,
-          generatedAt: mealPlan.generatedAt,
-          meals: mealPlan.meals,
-          summary: mealPlan.summary,
-          daysAgo: Math.floor(
-            (Date.now() - mealPlan.generatedAt) / (1000 * 60 * 60 * 24)
-          ),
-        },
+        mealPlan: responseData,
       },
     });
   } catch (error) {
@@ -302,27 +373,38 @@ const getPatientMealPlanByDoctor = async (req, res) => {
       });
     }
 
+    const responseData = {
+      id: mealPlan._id,
+      generatedAt: mealPlan.generatedAt,
+      dayCount: mealPlan.dayCount || 1,
+      summary: mealPlan.summary,
+      daysAgo: Math.floor(
+        (Date.now() - mealPlan.generatedAt) / (1000 * 60 * 60 * 24)
+      ),
+      patient: {
+        id: mealPlan.patient._id,
+        name: patientProfile.user.name,
+        email: patientProfile.user.email,
+        healthGoal: mealPlan.patient.healthGoal,
+        mealPreference: mealPlan.patient.mealPreference,
+        diseaseCondition: mealPlan.patient.diseaseCondition,
+      },
+    };
+
+    if (mealPlan.dayCount === 1 || !mealPlan.dayCount) {
+      // Single day meal plan (backward compatibility)
+      responseData.meals = mealPlan.meals;
+    } else {
+      // Multi-day meal plan
+      responseData.dailyMeals = mealPlan.dailyMeals;
+      responseData.dailySummaries = mealPlan.dailySummaries;
+    }
+
     res.status(200).json({
       success: true,
       message: `Meal plan retrieved successfully for patient ${patientProfile.user.name}`,
       data: {
-        mealPlan: {
-          id: mealPlan._id,
-          generatedAt: mealPlan.generatedAt,
-          meals: mealPlan.meals,
-          summary: mealPlan.summary,
-          daysAgo: Math.floor(
-            (Date.now() - mealPlan.generatedAt) / (1000 * 60 * 60 * 24)
-          ),
-          patient: {
-            id: mealPlan.patient._id,
-            name: patientProfile.user.name,
-            email: patientProfile.user.email,
-            healthGoal: mealPlan.patient.healthGoal,
-            mealPreference: mealPlan.patient.mealPreference,
-            diseaseCondition: mealPlan.patient.diseaseCondition,
-          },
-        },
+        mealPlan: responseData,
       },
     });
   } catch (error) {
@@ -387,15 +469,26 @@ const getPatientMealPlanHistory = async (req, res) => {
       success: true,
       message: `Meal plan history retrieved successfully for patient ${patientProfile.user.name}`,
       data: {
-        mealPlans: mealPlans.map((plan) => ({
-          id: plan._id,
-          generatedAt: plan.generatedAt,
-          meals: plan.meals,
-          summary: plan.summary,
-          daysAgo: Math.floor(
-            (Date.now() - plan.generatedAt) / (1000 * 60 * 60 * 24)
-          ),
-        })),
+        mealPlans: mealPlans.map((plan) => {
+          const planData = {
+            id: plan._id,
+            generatedAt: plan.generatedAt,
+            dayCount: plan.dayCount || 1,
+            summary: plan.summary,
+            daysAgo: Math.floor(
+              (Date.now() - plan.generatedAt) / (1000 * 60 * 60 * 24)
+            ),
+          };
+
+          if (plan.dayCount === 1 || !plan.dayCount) {
+            planData.meals = plan.meals;
+          } else {
+            planData.dailyMeals = plan.dailyMeals;
+            planData.dailySummaries = plan.dailySummaries;
+          }
+
+          return planData;
+        }),
         pagination: {
           currentPage: parseInt(page),
           totalPages,

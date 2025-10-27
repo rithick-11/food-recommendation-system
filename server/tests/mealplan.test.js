@@ -343,6 +343,7 @@ describe('Meal Plan API Endpoints', () => {
       // Create multiple meal plans for the patient
       const mealPlan1 = new MealPlan({
         patient: patientProfile._id,
+        dayCount: 1,
         meals: mockMealPlanData.meals,
         summary: mockMealPlanData.summary,
         generatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
@@ -350,6 +351,7 @@ describe('Meal Plan API Endpoints', () => {
       
       const mealPlan2 = new MealPlan({
         patient: patientProfile._id,
+        dayCount: 1,
         meals: mockMealPlanData.meals,
         summary: mockMealPlanData.summary,
         generatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
@@ -357,6 +359,7 @@ describe('Meal Plan API Endpoints', () => {
       
       const mealPlan3 = new MealPlan({
         patient: patientProfile._id,
+        dayCount: 1,
         meals: mockMealPlanData.meals,
         summary: mockMealPlanData.summary,
         generatedAt: new Date() // today

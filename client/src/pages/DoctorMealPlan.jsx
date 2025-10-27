@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useAppStore from "../stores/useAppStore";
 import MealCard from "../components/MealCard";
+import MultiDayMealPlan from "../components/MultiDayMealPlan";
 import api from "../services/api";
 
 const DoctorMealPlan = () => {
@@ -30,6 +31,7 @@ const DoctorMealPlan = () => {
   // Local state for meal plan functionality
   const [mealPlan, setMealPlan] = useState(null);
   const [generating, setGenerating] = useState(false);
+  const [dayCount, setDayCount] = useState(1);
 
   // Get patient from cache
   const patient = getCachedData(`patient-${patientId}`);
@@ -115,14 +117,16 @@ const DoctorMealPlan = () => {
   };
 
   const regenerateMealPlan = async () => {
-    if (window.confirm('Are you sure you want to generate a new meal plan? This will create a new plan based on the current patient profile.')) {
+    if (window.confirm(`Are you sure you want to generate a new ${dayCount}-day meal plan? This will create a new plan based on the current patient profile.`)) {
       try {
         setGenerating(true);
         clearMessage('success');
         
-        const response = await api.post(`/api/mealplan/generate/${patientId}`);
+        const response = await api.post(`/api/mealplan/generate/${patientId}`, {
+          dayCount: dayCount
+        });
         setMealPlan(response.data.mealPlan);
-        setMessage('success', 'New meal plan generated successfully for the patient!');
+        setMessage('success', `New ${dayCount}-day meal plan generated successfully for the patient!`);
         
         if (showHistory) {
           await fetchMealPlanHistory(1);
@@ -204,7 +208,25 @@ const DoctorMealPlan = () => {
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center mb-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <label htmlFor="doctorDayCount" className="text-sm font-medium text-gray-700">
+              Days:
+            </label>
+            <select
+              id="doctorDayCount"
+              value={dayCount}
+              onChange={(e) => setDayCount(parseInt(e.target.value))}
+              disabled={generating}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map(day => (
+                <option key={day} value={day}>
+                  {day} {day === 1 ? 'day' : 'days'}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             onClick={regenerateMealPlan}
             disabled={generating || !patient}
@@ -294,74 +316,88 @@ const DoctorMealPlan = () => {
           {/* Current Meal Plan */}
           {mealPlan ? (
             <div className="space-y-6">
-              {/* Meal Plan Header */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      {selectedHistoryPlan ? "Historical Meal Plan" : "Current Meal Plan"}
-                    </h2>
-                    {selectedHistoryPlan && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                        Historical View
+              {/* Historical View Indicator */}
+              {selectedHistoryPlan && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                      Historical View
+                    </span>
+                    <span className="text-sm text-yellow-700">
+                      You are viewing a historical meal plan from {formatDate(mealPlan.generatedAt)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Multi-day or Single-day Display */}
+              {mealPlan.dayCount > 1 ? (
+                <MultiDayMealPlan mealPlan={mealPlan} />
+              ) : (
+                <div className="space-y-6">
+                  {/* Meal Plan Header */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {selectedHistoryPlan ? "Historical Meal Plan" : "Current Meal Plan"}
+                      </h2>
+                      <span className="text-sm text-gray-500">
+                        Generated on {formatDate(mealPlan.generatedAt)}
                       </span>
+                    </div>
+
+                    {/* Daily Summary */}
+                    {mealPlan.summary && (
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-3">
+                          Daily Nutritional Summary
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {mealPlan.summary.total_calories_kcal}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Total Calories
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {mealPlan.summary.total_protein_g}g
+                            </div>
+                            <div className="text-sm text-gray-600">Protein</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-yellow-600">
+                              {mealPlan.summary.total_carbs_g}g
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Carbohydrates
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-red-600">
+                              {mealPlan.summary.total_fat_g}g
+                            </div>
+                            <div className="text-sm text-gray-600">Fat</div>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <span className="text-sm text-gray-500">
-                    Generated on {formatDate(mealPlan.generatedAt)}
-                  </span>
-                </div>
 
-                {/* Daily Summary */}
-                {mealPlan.summary && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">
-                      Daily Nutritional Summary
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {mealPlan.summary.total_calories_kcal}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Total Calories
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {mealPlan.summary.total_protein_g}g
-                        </div>
-                        <div className="text-sm text-gray-600">Protein</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-600">
-                          {mealPlan.summary.total_carbs_g}g
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Carbohydrates
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-600">
-                          {mealPlan.summary.total_fat_g}g
-                        </div>
-                        <div className="text-sm text-gray-600">Fat</div>
-                      </div>
-                    </div>
+                  {/* Individual Meals */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <MealCard
+                      mealType="breakfast"
+                      mealData={mealPlan.meals?.breakfast}
+                    />
+                    <MealCard mealType="lunch" mealData={mealPlan.meals?.lunch} />
+                    <MealCard mealType="snacks" mealData={mealPlan.meals?.snacks} />
+                    <MealCard mealType="dinner" mealData={mealPlan.meals?.dinner} />
                   </div>
-                )}
-              </div>
-
-              {/* Individual Meals */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <MealCard
-                  mealType="breakfast"
-                  mealData={mealPlan.meals?.breakfast}
-                />
-                <MealCard mealType="lunch" mealData={mealPlan.meals?.lunch} />
-                <MealCard mealType="snacks" mealData={mealPlan.meals?.snacks} />
-                <MealCard mealType="dinner" mealData={mealPlan.meals?.dinner} />
-              </div>
+                </div>
+              )}
 
               {/* Meal Plan History */}
               {showHistory && (
@@ -391,6 +427,11 @@ const DoctorMealPlan = () => {
                                 <span className="font-medium text-gray-900">
                                   Plan #{((currentHistoryPage - 1) * 5) + index + 1}
                                 </span>
+                                {plan.dayCount > 1 && (
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                    {plan.dayCount} Days
+                                  </span>
+                                )}
                                 {selectedHistoryPlan?.id === plan.id && (
                                   <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                                     Currently Viewing
@@ -497,25 +538,45 @@ const DoctorMealPlan = () => {
                   Generate the first personalized meal plan for this patient
                   based on their health profile.
                 </p>
-                <button
-                  onClick={regenerateMealPlan}
-                  disabled={generating || !patient}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {generating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Generate Meal Plan
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-4 justify-center">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="doctorDayCountEmpty" className="text-sm font-medium text-gray-700">
+                      Days:
+                    </label>
+                    <select
+                      id="doctorDayCountEmpty"
+                      value={dayCount}
+                      onChange={(e) => setDayCount(parseInt(e.target.value))}
+                      disabled={generating}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7].map(day => (
+                        <option key={day} value={day}>
+                          {day} {day === 1 ? 'day' : 'days'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={regenerateMealPlan}
+                    disabled={generating || !patient}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {generating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Generate Meal Plan
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )
           )}
