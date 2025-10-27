@@ -10,6 +10,7 @@ import DoctorPatientProfile from './pages/DoctorPatientProfile';
 import DoctorMealPlan from './pages/DoctorMealPlan';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PatientDashboard from './pages/PatientDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -84,6 +85,16 @@ function App() {
                 element={
                   <ProtectedRoute requiredRole="doctor">
                     <DoctorMealPlan />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Admin Routes */}
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
                   </ProtectedRoute>
                 } 
               />

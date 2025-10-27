@@ -99,6 +99,20 @@ describe('Authentication System', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.user.role).toBe('doctor');
+      expect(response.body.data.user.approvalStatus).toBe('pending');
+    });
+
+    it('should register a new admin successfully', async () => {
+      const adminData = { ...validUserData, role: 'admin', email: 'admin@example.com' };
+      
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send(adminData);
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.user.role).toBe('admin');
+      expect(response.body.data.user.approvalStatus).toBe('approved');
     });
 
     it('should reject registration with missing fields', async () => {
@@ -114,7 +128,7 @@ describe('Authentication System', () => {
     });
 
     it('should reject registration with invalid role', async () => {
-      const invalidRoleData = { ...validUserData, role: 'admin' };
+      const invalidRoleData = { ...validUserData, role: 'invalid_role' };
       
       const response = await request(app)
         .post('/api/auth/register')
@@ -122,7 +136,7 @@ describe('Authentication System', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Role must be either "patient" or "doctor"');
+      expect(response.body.message).toContain('Role must be either "patient", "doctor", or "admin"');
     });
 
     it('should reject registration with invalid email format', async () => {

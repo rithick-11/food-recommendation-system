@@ -1,9 +1,10 @@
 import { useAuth } from '../contexts/AuthContext';
 import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
+import AdminDashboard from './AdminDashboard';
 
 const Dashboard = () => {
-  const { isPatient, isDoctor } = useAuth();
+  const { isPatient, isDoctor, isAdmin } = useAuth();
 
   if (isPatient()) {
     return <PatientDashboard />;
@@ -11,6 +12,10 @@ const Dashboard = () => {
 
   if (isDoctor()) {
     return <DoctorDashboard />;
+  }
+
+  if (isAdmin()) {
+    return <AdminDashboard />;
   }
 
   return (

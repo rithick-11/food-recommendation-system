@@ -7,7 +7,7 @@ const {
   getPatientMealPlanByDoctor,
   getPatientMealPlanHistory
 } = require('../controllers/mealPlanController');
-const { authenticate, requirePatient, requireDoctor } = require('../middleware/auth');
+const { authenticate, requirePatient, requireApprovedDoctor } = require('../middleware/auth');
 
 // Patient routes - self-service meal plan management
 router.post('/generate', 
@@ -22,22 +22,22 @@ router.get('/me',
   getPatientMealPlan
 );
 
-// Doctor routes - manage meal plans for patients
+// Doctor routes - manage meal plans for patients (approved doctors only)
 router.post('/generate/:patientId', 
   authenticate, 
-  requireDoctor, 
+  requireApprovedDoctor, 
   generateForPatientByDoctor
 );
 
 router.get('/:patientId', 
   authenticate, 
-  requireDoctor, 
+  requireApprovedDoctor, 
   getPatientMealPlanByDoctor
 );
 
 router.get('/:patientId/history', 
   authenticate, 
-  requireDoctor, 
+  requireApprovedDoctor, 
   getPatientMealPlanHistory
 );
 

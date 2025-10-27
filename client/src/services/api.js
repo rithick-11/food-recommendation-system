@@ -35,4 +35,21 @@ api.interceptors.response.use(
   }
 );
 
+// Admin API functions
+export const adminAPI = {
+  // Get all pending doctors
+  getPendingDoctors: () => api.get('/api/admin/doctors/pending'),
+  
+  // Get all doctors
+  getAllDoctors: () => api.get('/api/admin/doctors'),
+  
+  // Approve a doctor
+  approveDoctor: (doctorId, reason) => 
+    api.put(`/api/admin/doctors/${doctorId}/approve`, { reason }),
+  
+  // Reject a doctor
+  rejectDoctor: (doctorId, reason) => 
+    api.put(`/api/admin/doctors/${doctorId}/reject`, { reason }),
+};
+
 export default api;

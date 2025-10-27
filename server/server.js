@@ -27,6 +27,7 @@ const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const doctorRoutes = require('./routes/doctor');
 const mealPlanRoutes = require('./routes/mealplan');
+const adminRoutes = require('./routes/admin');
 const testRoutes = require('./routes/test');
 
 // Basic route
@@ -51,6 +52,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/patients', doctorRoutes);
 app.use('/api/mealplan', mealPlanRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/test', testRoutes);
 
 // Error handling middleware

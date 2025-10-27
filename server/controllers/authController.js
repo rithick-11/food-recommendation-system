@@ -19,10 +19,10 @@ const register = async (req, res) => {
     }
 
     // Validate role
-    if (!['patient', 'doctor'].includes(role)) {
+    if (!['patient', 'doctor', 'admin'].includes(role)) {
       return res.status(400).json({
         success: false,
-        message: 'Role must be either "patient" or "doctor"'
+        message: 'Role must be either "patient", "doctor", or "admin"'
       });
     }
 
@@ -74,7 +74,8 @@ const register = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      approvalStatus: user.approvalStatus
     };
 
     res.status(201).json({
@@ -154,7 +155,8 @@ const login = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      approvalStatus: user.approvalStatus
     };
 
     res.json({

@@ -104,6 +104,10 @@ export const AuthProvider = ({ children }) => {
     return hasRole('doctor');
   }, [hasRole]);
 
+  const isAdmin = useCallback(() => {
+    return hasRole('admin');
+  }, [hasRole]);
+
   const value = useMemo(() => ({
     user,
     token,
@@ -115,7 +119,8 @@ export const AuthProvider = ({ children }) => {
     hasRole,
     isPatient,
     isDoctor,
-  }), [user, token, loading, login, register, logout, isAuthenticated, hasRole, isPatient, isDoctor]);
+    isAdmin,
+  }), [user, token, loading, login, register, logout, isAuthenticated, hasRole, isPatient, isDoctor, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>

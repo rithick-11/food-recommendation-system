@@ -89,12 +89,28 @@ const Register = () => {
       const result = await register(registrationData);
       
       if (result.success) {
-        navigate('/dashboard');
+        // Show special message for doctors about approval
+        if (result.user.role === 'doctor' && result.user.approvalStatus === 'pending') {
+          setMessage({
+            type: 'info',
+            text: 'Registration successful! Your doctor account is pending admin approval. You will be able to access patient data once approved.'
+          });
+          // Don't navigate immediately for doctors
+          setTimeout(() => navigate('/dashboard'), 3000);
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        setMessage(result.message || 'Registration failed');
+        setMessage({
+          type: 'error',
+          text: result.message || 'Registration failed'
+        });
       }
     } catch (error) {
-      setMessage('An unexpected error occurred');
+      setMessage({
+        type: 'error',
+        text: 'An unexpected error occurred'
+      });
     } finally {
       setLoading(false);
     }
@@ -113,10 +129,16 @@ const Register = () => {
         </div>
         
         {message && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.type === 'info' 
+              ? 'bg-blue-50 border border-blue-200 text-blue-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}>
             <div className="flex items-center">
-              <span className="text-red-500 mr-2">⚠</span>
-              {message}
+              <span className={`mr-2 ${message.type === 'info' ? 'text-blue-500' : 'text-red-500'}`}>
+                {message.type === 'info' ? 'ℹ' : '⚠'}
+              </span>
+              {typeof message === 'string' ? message : message.text}
             </div>
           </div>
         )}

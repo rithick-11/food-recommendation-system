@@ -76,6 +76,15 @@ const Navbar = () => {
                   </Link>
                 )}
                 
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin/dashboard"
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
+                
                 <div className="flex items-center space-x-3 border-l border-gray-200 pl-4">
                   <div className="flex flex-col text-right">
                     <span className="text-sm font-medium text-gray-900">
@@ -177,6 +186,16 @@ const Navbar = () => {
                       onClick={closeMobileMenu}
                     >
                       Patients
+                    </Link>
+                  )}
+                  
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      Admin Panel
                     </Link>
                   )}
                   

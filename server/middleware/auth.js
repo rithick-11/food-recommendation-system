@@ -119,10 +119,59 @@ const requireDoctor = authorize(['doctor']);
  */
 const requireAuthenticated = authorize(['patient', 'doctor']);
 
+/**
+ * Middleware to check if user is an admin
+ */
+const requireAdmin = authorize(['admin']);
+
+/**
+ * Middleware to check if user is either patient, doctor, or admin
+ */
+const requireAnyRole = authorize(['patient', 'doctor', 'admin']);
+
+/**
+ * Middleware to check if doctor is approved
+ */
+const requireApprovedDoctor = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access denied. User not authenticated.'
+    });
+  }
+
+  if (req.user.role !== 'doctor') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Doctor role required.'
+    });
+  }
+
+  if (req.user.approvalStatus !== 'approved') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Doctor approval pending. Please wait for admin approval.',
+      code: 'DOCTOR_NOT_APPROVED',
+      approvalStatus: req.user.approvalStatus
+    });
+  }
+
+  next();
+};
+
+// Alias for common middleware names
+const protect = authenticate;
+const adminOnly = requireAdmin;
+
 module.exports = {
   authenticate,
   authorize,
   requirePatient,
   requireDoctor,
-  requireAuthenticated
+  requireAuthenticated,
+  requireAdmin,
+  requireAnyRole,
+  requireApprovedDoctor,
+  protect,
+  adminOnly
 };

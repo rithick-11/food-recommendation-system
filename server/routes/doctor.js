@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticate, requireDoctor } = require('../middleware/auth');
+const { authenticate, requireApprovedDoctor } = require('../middleware/auth');
 const { 
   getAllPatients,
   getPatientProfile,
@@ -8,9 +8,9 @@ const {
 
 const router = express.Router();
 
-// All routes are protected and restricted to doctors only
+// All routes are protected and restricted to approved doctors only
 router.use(authenticate);
-router.use(requireDoctor);
+router.use(requireApprovedDoctor);
 
 /**
  * @route   GET /api/patients

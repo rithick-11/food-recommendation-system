@@ -12,15 +12,23 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isAdmin, isDoctor, isPatient } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate('/dashboard');
+      if (isAdmin()) {
+        navigate('/admin/dashboard');
+      } else if (isDoctor()) {
+        navigate('/doctor/dashboard');
+      } else if (isPatient()) {
+        navigate('/patient/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, isDoctor, isPatient, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,7 +76,17 @@ const Login = () => {
     try {
       const result = await login(formData.email, formData.password);
       if (result.success) {
-        navigate('/dashboard');
+        // Redirect based on user role
+        const userRole = result.user.role;
+        if (userRole === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (userRole === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else if (userRole === 'patient') {
+          navigate('/patient/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setMessage(result.message || 'Login failed');
       }

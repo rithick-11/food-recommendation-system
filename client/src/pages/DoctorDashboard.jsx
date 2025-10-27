@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
+import DoctorPendingApproval from "../components/DoctorPendingApproval";
 import useAppStore from "../stores/useAppStore";
 
 const DoctorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Zustand store
   const { loading, errors, fetchAllPatients, getCachedData } = useAppStore();
@@ -42,6 +45,11 @@ const DoctorDashboard = () => {
     },
     [navigate]
   );
+
+  // Check if doctor is approved
+  if (user?.role === 'doctor' && user?.approvalStatus !== 'approved') {
+    return <DoctorPendingApproval />;
+  }
 
   if (loading.dashboard) {
     return (
