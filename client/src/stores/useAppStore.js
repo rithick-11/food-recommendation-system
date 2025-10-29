@@ -220,7 +220,7 @@ const useAppStore = create((set, get) => ({
       state.clearError('dashboard');
       
       const response = await api.get('/api/patients');
-      const result = response.data.data;
+      const result = response.data.data.patients;
       
       // Cache the result
       state.setCachedData(cacheKey, result);

@@ -153,8 +153,8 @@ const generateForPatientByDoctor = async (req, res) => {
       });
     }
 
-    // Find patient profile
-    const patientProfile = await PatientProfile.findById(patientId).populate(
+    // Find patient profile (patientId is actually the user ID)
+    const patientProfile = await PatientProfile.findOne({ user: patientId }).populate(
       "user",
       "name email"
     );
@@ -342,8 +342,8 @@ const getPatientMealPlanByDoctor = async (req, res) => {
       });
     }
 
-    // Verify patient profile exists
-    const patientProfile = await PatientProfile.findById(patientId).populate(
+    // Verify patient profile exists (patientId is actually the user ID)
+    const patientProfile = await PatientProfile.findOne({ user: patientId }).populate(
       "user",
       "name email"
     );
@@ -355,8 +355,8 @@ const getPatientMealPlanByDoctor = async (req, res) => {
       });
     }
 
-    // Get most recent meal plan
-    const mealPlan = await MealPlan.getLatestForPatient(patientId);
+    // Get most recent meal plan (use profile ID for meal plan lookup)
+    const mealPlan = await MealPlan.getLatestForPatient(patientProfile._id);
 
     if (!mealPlan) {
       return res.status(404).json({
@@ -439,8 +439,8 @@ const getPatientMealPlanHistory = async (req, res) => {
       });
     }
 
-    // Verify patient profile exists
-    const patientProfile = await PatientProfile.findById(patientId).populate(
+    // Verify patient profile exists (patientId is actually the user ID)
+    const patientProfile = await PatientProfile.findOne({ user: patientId }).populate(
       "user",
       "name email"
     );
@@ -455,14 +455,14 @@ const getPatientMealPlanHistory = async (req, res) => {
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get meal plan history with pagination
-    const mealPlans = await MealPlan.find({ patient: patientId })
+    // Get meal plan history with pagination (use profile ID for meal plan lookup)
+    const mealPlans = await MealPlan.find({ patient: patientProfile._id })
       .sort({ generatedAt: -1 })
       .limit(parseInt(limit))
       .skip(skip);
 
     // Get total count for pagination info
-    const totalCount = await MealPlan.countDocuments({ patient: patientId });
+    const totalCount = await MealPlan.countDocuments({ patient: patientProfile._id });
     const totalPages = Math.ceil(totalCount / parseInt(limit));
 
     res.status(200).json({

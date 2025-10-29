@@ -52,7 +52,7 @@ const DoctorPatientProfile = () => {
     try {
       setLoading(true);
       const response = await api.get(`/api/patients/profile/${patientId}`);
-      const patientData = response.data.patient;
+      const patientData = response.data.data.patient;
       setPatient(patientData);
       
       if (patientData.profile) {
@@ -168,8 +168,8 @@ const DoctorPatientProfile = () => {
       setSaving(true);
       const response = await api.put(`/api/patients/profile/${patientId}`, profile);
       setMessage('Patient profile updated successfully!');
-      setProfile(response.data.profile);
-      setOriginalProfile(response.data.profile);
+      setProfile(response.data.data.profile);
+      setOriginalProfile(response.data.data.profile);
       setHasChanges(false);
     } catch (error) {
       console.error('Error updating patient profile:', error);

@@ -181,7 +181,9 @@ const getAllPatients = async (req, res) => {
     res.json({
       success: true,
       count: patientsWithProfiles.length,
-      data: patientsWithProfiles
+      data: {
+        patients: patientsWithProfiles
+      }
     });
   } catch (error) {
     console.error('Error fetching patients:', error);
@@ -221,16 +223,20 @@ const getPatientProfile = async (req, res) => {
     // Get the patient's profile
     const profile = await PatientProfile.findOne({ user: patientId }).populate('user', 'name email');
     
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Patient profile not found'
-      });
-    }
+    // Return patient data even if no profile exists (for creating new profiles)
+    const patientData = {
+      _id: patient._id,
+      name: patient.name,
+      email: patient.email,
+      role: patient.role,
+      profile: profile || null
+    };
 
     res.json({
       success: true,
-      data: profile
+      data: {
+        patient: patientData
+      }
     });
   } catch (error) {
     console.error('Error fetching patient profile:', error);
@@ -359,7 +365,9 @@ const updatePatientProfile = async (req, res) => {
     res.json({
       success: true,
       message: 'Patient profile updated successfully',
-      data: profile
+      data: {
+        profile: profile
+      }
     });
   } catch (error) {
     console.error('Error updating patient profile:', error);

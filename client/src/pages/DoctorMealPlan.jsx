@@ -57,7 +57,7 @@ const DoctorMealPlan = () => {
     try {
       setLoading('patients', true);
       const response = await api.get(`/api/mealplan/${patientId}`);
-      setMealPlan(response.data.mealPlan);
+      setMealPlan(response.data.data.mealPlan);
     } catch (error) {
       if (error.response?.status === 404) {
         setError('patients', 'No meal plan found for this patient. Generate the first meal plan below!');
@@ -125,7 +125,7 @@ const DoctorMealPlan = () => {
         const response = await api.post(`/api/mealplan/generate/${patientId}`, {
           dayCount: dayCount
         });
-        setMealPlan(response.data.mealPlan);
+        setMealPlan(response.data.data.mealPlan);
         setMessage('success', `New ${dayCount}-day meal plan generated successfully for the patient!`);
         
         if (showHistory) {
@@ -144,7 +144,7 @@ const DoctorMealPlan = () => {
     try {
       setLoading('patients', true);
       const response = await api.get(`/api/mealplan/${patientId}/history?page=${page}&limit=5`);
-      setHistoryData(response.data);
+      setHistoryData(response.data.data);
       setCurrentHistoryPage(page);
     } catch (error) {
       console.error('Error fetching meal plan history:', error);
