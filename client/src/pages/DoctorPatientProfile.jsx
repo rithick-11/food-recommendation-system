@@ -51,8 +51,11 @@ const DoctorPatientProfile = () => {
   const fetchPatientProfile = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching patient profile for ID:', patientId);
       const response = await api.get(`/api/patients/profile/${patientId}`);
+      console.log('📡 API Response:', response.data);
       const patientData = response.data.data.patient;
+      console.log('👤 Patient Data:', patientData);
       setPatient(patientData);
       
       if (patientData.profile) {
