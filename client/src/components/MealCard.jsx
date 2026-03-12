@@ -30,12 +30,17 @@ const MealCard = ({ mealType, mealData, dayNumber = null }) => {
 
   const {
     items,
+    delivery_search_query,
     carbs_g,
     protein_g,
     fat_g,
     fiber_g,
     calories_kcal
   } = mealData;
+
+  // Fallback for older meal plans that don't have this field
+  const searchQuery = delivery_search_query || 
+    items.split(' with ')[0].split(',')[0].replace(/^[0-9\s]+(cup[s]?|bowl[s]?|glass[es]?|pieces?|slices?)\s*/i, '').trim();
 
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6">
@@ -56,9 +61,27 @@ const MealCard = ({ mealType, mealData, dayNumber = null }) => {
           <span className="mr-2">🍽️</span>
           Food Items:
         </h4>
-        <p className="text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg">
+        <p className="text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg mb-4">
           {items}
         </p>
+        <div className="flex gap-3">
+          <a
+            href={`https://www.swiggy.com/search?query=${encodeURIComponent(searchQuery)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-[#FC8019] hover:bg-[#e07014] text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+          >
+            Order on Swiggy
+          </a>
+          <a
+            href={`https://www.zomato.com/search?keyword=${encodeURIComponent(searchQuery)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-[#E23744] hover:bg-[#c9303c] text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+          >
+            Order on Zomato
+          </a>
+        </div>
       </div>
 
       <div className="border-t border-gray-100 pt-4">

@@ -37,16 +37,19 @@ Food Recommendation system/
 ### Backend Setup
 
 1. Navigate to the server directory:
+
    ```bash
    cd server
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Copy environment variables:
+
    ```bash
    cp .env.example .env
    ```
@@ -61,16 +64,19 @@ Food Recommendation system/
 ### Frontend Setup
 
 1. Navigate to the client directory:
+
    ```bash
    cd client
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Copy environment variables:
+
    ```bash
    cp .env.example .env
    ```
@@ -92,6 +98,7 @@ Food Recommendation system/
 ## Tech Stack
 
 ### Backend
+
 - Node.js
 - Express.js
 - MongoDB with Mongoose
@@ -99,6 +106,7 @@ Food Recommendation system/
 - Google Generative AI (Gemini)
 
 ### Frontend
+
 - React
 - Vite
 - React Router

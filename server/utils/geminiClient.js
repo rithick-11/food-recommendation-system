@@ -4,7 +4,7 @@ const MockMealPlanGenerator = require("./mockMealPlan");
 class GeminiClient {
   constructor() {
     this.genAI = null;
-    this.modelName = "gemini-2.0-flash-exp";
+    this.modelName = "gemini-2.0-flash";
 
     // Only initialize if we have a valid API key
     if (
