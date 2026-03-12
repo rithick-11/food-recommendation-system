@@ -60,6 +60,7 @@ class GeminiClient {
   "meals": {
     "breakfast": {
       "items": "detailed breakfast items with portions",
+      "delivery_search_query": "concise food name for searching on delivery apps (max 3 words)",
       "carbs_g": number,
       "protein_g": number,
       "fat_g": number,
@@ -68,6 +69,7 @@ class GeminiClient {
     },
     "lunch": {
       "items": "detailed lunch items with portions",
+      "delivery_search_query": "concise food name for searching on delivery apps (max 3 words)",
       "carbs_g": number,
       "protein_g": number,
       "fat_g": number,
@@ -76,6 +78,7 @@ class GeminiClient {
     },
     "snacks": {
       "items": "detailed snack items with portions",
+      "delivery_search_query": "concise food name for searching on delivery apps (max 3 words)",
       "carbs_g": number,
       "protein_g": number,
       "fat_g": number,
@@ -84,6 +87,7 @@ class GeminiClient {
     },
     "dinner": {
       "items": "detailed dinner items with portions",
+      "delivery_search_query": "concise food name for searching on delivery apps (max 3 words)",
       "carbs_g": number,
       "protein_g": number,
       "fat_g": number,
@@ -103,10 +107,10 @@ class GeminiClient {
       systemPrompt = `You are an expert dietitian and nutritionist. Generate a personalized ${dayCount}-day meal plan based on the patient's health profile. Ensure variety across days while maintaining nutritional consistency.`;
       
       const dayStructure = Array.from({length: dayCount}, (_, i) => `    "day${i + 1}": {
-      "breakfast": { "items": "detailed breakfast items with portions", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
-      "lunch": { "items": "detailed lunch items with portions", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
-      "snacks": { "items": "detailed snack items with portions", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
-      "dinner": { "items": "detailed dinner items with portions", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number }
+      "breakfast": { "items": "detailed breakfast items with portions", "delivery_search_query": "concise name", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
+      "lunch": { "items": "detailed lunch items with portions", "delivery_search_query": "concise name", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
+      "snacks": { "items": "detailed snack items with portions", "delivery_search_query": "concise name", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number },
+      "dinner": { "items": "detailed dinner items with portions", "delivery_search_query": "concise name", "carbs_g": number, "protein_g": number, "fat_g": number, "fiber_g": number, "calories_kcal": number }
     }`).join(',\n');
 
       const dailySummaryStructure = Array.from({length: dayCount}, (_, i) => `    "day${i + 1}": {
@@ -410,6 +414,7 @@ Ensure:
   validateMealData(mealData, mealName) {
     const requiredFields = [
       "items",
+      "delivery_search_query",
       "carbs_g",
       "protein_g",
       "fat_g",
@@ -423,7 +428,7 @@ Ensure:
       }
 
       if (
-        field !== "items" &&
+        field !== "items" && field !== "delivery_search_query" &&
         (typeof mealData[field] !== "number" || mealData[field] < 0)
       ) {
         throw new Error(

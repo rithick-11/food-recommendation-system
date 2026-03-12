@@ -232,6 +232,7 @@ class MockMealPlanGenerator {
 
     return {
       items: adjustedMeal.items,
+      delivery_search_query: adjustedMeal.items.split(' with ')[0].split(',')[0].replace(/^[0-9\s]+(cup[s]?|bowl[s]?|glass[es]?|pieces?|slices?)\s*/i, '').trim(),
       carbs_g: Math.round(adjustedMeal.carbs_g * scaleFactor),
       protein_g: Math.round(adjustedMeal.protein_g * scaleFactor),
       fat_g: Math.round(adjustedMeal.fat_g * scaleFactor),
