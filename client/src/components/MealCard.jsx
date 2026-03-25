@@ -38,9 +38,21 @@ const MealCard = ({ mealType, mealData, dayNumber = null }) => {
     calories_kcal
   } = mealData;
 
-  // Fallback for older meal plans that don't have this field
-  const searchQuery = delivery_search_query || 
-    items.split(' with ')[0].split(',')[0].replace(/^[0-9\s]+(cup[s]?|bowl[s]?|glass[es]?|pieces?|slices?)\s*/i, '').trim();
+  // Helper to parse items into individual search queries
+  const parseItemsForSearch = (itemsString) => {
+    return itemsString
+      .split(/,|\band\b/i) // Split by comma or 'and'
+      .map(item => {
+        // Remove quantities and units (e.g., "1 cup", "2 slices", "1/2 bowl")
+        let cleaned = item.replace(/^[0-9\/\s]+(cup[s]?|bowl[s]?|glass[es]?|pieces?|slices?|tbsp|tsp)\s*/i, '');
+        // Remove simple leading numbers ("2 rotis" -> "rotis")
+        cleaned = cleaned.replace(/^[0-9\s]+/, '');
+        return cleaned.trim();
+      })
+      .filter(item => item.length > 2); // Keep only meaningful strings
+  };
+
+  const parsedItems = parseItemsForSearch(items);
 
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6">
@@ -64,23 +76,37 @@ const MealCard = ({ mealType, mealData, dayNumber = null }) => {
         <p className="text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg mb-4">
           {items}
         </p>
-        <div className="flex gap-3">
-          <a
-            href={`https://www.swiggy.com/search?query=${encodeURIComponent(searchQuery)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-[#FC8019] hover:bg-[#e07014] text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-          >
-            Order on Swiggy
-          </a>
-          <a
-            href={`https://www.zomato.com/search?keyword=${encodeURIComponent(searchQuery)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-[#E23744] hover:bg-[#c9303c] text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-          >
-            Order on Zomato
-          </a>
+
+        <h4 className="text-sm font-semibold text-gray-700 mb-2 mt-4 flex items-center">
+          <span className="mr-2">🛒</span>
+          Order Individual Items:
+        </h4>
+        <div className="flex flex-col gap-2">
+          {parsedItems.map((item, index) => (
+            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white border border-gray-100 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-sm font-medium text-gray-800 mb-2 sm:mb-0 capitalize flex-1 pr-2 truncate" title={item}>
+                {item}
+              </span>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <a
+                  href={`https://www.swiggy.com/search?query=${encodeURIComponent(item)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none px-3 py-1.5 bg-[#FC8019] text-white text-xs font-medium rounded-md hover:bg-[#e07014] transition-colors text-center shadow-sm"
+                >
+                  Swiggy
+                </a>
+                <a
+                  href={`https://www.zomato.com/search?keyword=${encodeURIComponent(item)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none px-3 py-1.5 bg-[#E23744] text-white text-xs font-medium rounded-md hover:bg-[#c9303c] transition-colors text-center shadow-sm"
+                >
+                  Zomato
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
