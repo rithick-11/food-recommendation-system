@@ -1,17 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import useAppStore from "../stores/useAppStore";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const PatientProfile = () => {
+  useDocumentTitle('Patient Profile');
   const { user } = useAuth();
 
-  // ── Dynamic page title ────────────────────────────────────────────
-  useEffect(() => {
-    document.title = "My Health Profile | FoodRec";
-    return () => {
-      document.title = "FoodRec";
-    };
-  }, []);
+
 
   // Zustand store
   const {

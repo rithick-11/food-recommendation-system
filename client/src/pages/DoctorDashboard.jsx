@@ -4,8 +4,10 @@ import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import DoctorPendingApproval from "../components/DoctorPendingApproval";
 import useAppStore from "../stores/useAppStore";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const DoctorDashboard = () => {
+  useDocumentTitle('Doctor Dashboard');
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();

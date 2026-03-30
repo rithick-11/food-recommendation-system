@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Notification from '../components/Notification';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const AdminDashboard = () => {
+  useDocumentTitle('Admin Dashboard');
   const [doctors, setDoctors] = useState([]);
   const [pendingDoctors, setPendingDoctors] = useState([]);
   const [loading, setLoading] = useState(true);

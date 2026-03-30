@@ -2,8 +2,10 @@ import { useAuth } from '../contexts/AuthContext';
 import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
 import AdminDashboard from './AdminDashboard';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Dashboard = () => {
+  useDocumentTitle('Dashboard');
   const { isPatient, isDoctor, isAdmin } = useAuth();
 
   if (isPatient()) {

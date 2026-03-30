@@ -3,8 +3,10 @@ import { useAuth } from "../contexts/AuthContext";
 import api from "../services/api";
 import MealCard from "../components/MealCard";
 import MultiDayMealPlan from "../components/MultiDayMealPlan";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const MealPlan = () => {
+  useDocumentTitle('Meal Plan');
   const { user } = useAuth();
   const [mealPlan, setMealPlan] = useState(null);
   const [loading, setLoading] = useState(false);

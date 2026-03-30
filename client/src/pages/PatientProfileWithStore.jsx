@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import useAppStore from '../stores/useAppStore';
 import api from '../services/api';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const PatientProfile = () => {
+  useDocumentTitle('Patient Profile');
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [allergyInput, setAllergyInput] = useState('');

@@ -4,8 +4,10 @@ import useAppStore from "../stores/useAppStore";
 import MealCard from "../components/MealCard";
 import MultiDayMealPlan from "../components/MultiDayMealPlan";
 import api from "../services/api";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const DoctorMealPlan = () => {
+  useDocumentTitle('Doctor Meal Plan');
   const { patientId } = useParams();
   const navigate = useNavigate();
   

@@ -4,8 +4,10 @@ import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useAppStore from "../stores/useAppStore";
 import api from "../services/api";
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const PatientDashboard = () => {
+  useDocumentTitle('Patient Dashboard');
   const { user } = useAuth();
   const [mealPlan, setMealPlan] = useState(null);
 

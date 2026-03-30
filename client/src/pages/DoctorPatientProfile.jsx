@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const DoctorPatientProfile = () => {
+  useDocumentTitle('Doctor Patient Profile');
   const { patientId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

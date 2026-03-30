@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const Home = () => {
+  useDocumentTitle('Home');
   const { isAuthenticated } = useAuth();
 
   return (
