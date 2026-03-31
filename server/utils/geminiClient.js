@@ -243,7 +243,7 @@ RULES:
 2. No ${mealPreference === "Vegetarian" ? "meat/fish/eggs" : "ingredients outside preference"}.
 3. Avoid all allergens and disliked items.
 4. Prefer whole grains over refined. Oil ≤3 tsp/day. Minimal salt.
-5. Delivery search queries must be Swiggy/Zomato searchable.
+5. Delivery search queries must be Swiggy/Zomato searchable and make sure it should available on respective location.
 ${dayCount > 1 ? "6. No repeated main dish in same slot on consecutive days.\n7. Rotate grains: ragi → jowar → bajra → brown rice." : ""}
 Summary totals must equal sum of all meal nutrients (±5 tolerance).`;
 
